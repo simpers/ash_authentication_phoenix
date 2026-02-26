@@ -132,8 +132,8 @@ defmodule AshAuthentication.Phoenix.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ash_authentication, "~> 5.0.0-rc.9"},
-      {:wax_, "~> 0.7"},
+      # {:ash_authentication, path: "../aa"},
+      {:ash_authentication, path: "../aa"},
       {:ash_phoenix, "~> 2.3 and >= 2.3.11"},
       {:ash, "~> 3.26"},
       {:jason, "~> 1.0"},
@@ -145,6 +145,7 @@ defmodule AshAuthentication.Phoenix.MixProject do
       {:phoenix, "~> 1.6"},
       {:bcrypt_elixir, "~> 3.0"},
       {:slugify, "~> 1.3"},
+      {:wax_, "~> 0.7"},
       {:gettext, "~> 0.26 or ~> 1.0", optional: true},
       {:eqrcode, "~> 0.1", optional: true},
       {:igniter, "~> 0.5 and >= 0.5.25", optional: true},
