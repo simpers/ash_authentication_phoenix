@@ -3,6 +3,46 @@
 # SPDX-License-Identifier: MIT
 
 defmodule Example.Accounts.User do
+  defmodule WebAuthnSecret do
+    @moduledoc false
+
+    use AshAuthentication.Secret
+
+    @origin_path [:authentication, :strategies, :web_authn, :origin]
+    @relying_party_path [:authentication, :strategies, :web_authn, :relying_party]
+
+    @impl AshAuthentication.Secret
+    def secret_for(@origin_path, _resource, _opts, %{
+          http_request: %{host: host, port: port, scheme: scheme}
+        }) do
+      {:ok, "#{scheme}://#{host}:#{port}"}
+    end
+
+    def secret_for(@origin_path, _resource, _opts, %{
+          ash_authentication_request: %{host: host, port: port, scheme: scheme}
+        }) do
+      {:ok, "#{scheme}://#{host}:#{port}"}
+    end
+
+    def secret_for(@origin_path, _resource, _opts, _context) do
+      {:ok, "http://localhost:4000"}
+    end
+
+    def secret_for(@relying_party_path, _resource, _opts, %{http_request: %{host: host}}) do
+      {:ok, host}
+    end
+
+    def secret_for(@relying_party_path, _resource, _opts, %{
+          ash_authentication_request: %{host: host}
+        }) do
+      {:ok, host}
+    end
+
+    def secret_for(@relying_party_path, _resource, _opts, _context) do
+      {:ok, "localhost"}
+    end
+  end
+
   @moduledoc false
   use Ash.Resource,
     data_layer: Ash.DataLayer.Ets,
@@ -218,6 +258,12 @@ defmodule Example.Accounts.User do
         confirm_setup_enabled? true
         brute_force_strategy {:preparation, Example.TotpNoopPreparation}
       end
+
+      web_authn do
+        key_resource Example.Accounts.WebAuthnKey
+        relying_party WebAuthnSecret
+        require_identity? true
+      end
     end
 
     tokens do
@@ -235,6 +281,12 @@ defmodule Example.Accounts.User do
       pre_check_with: Example.Accounts,
       eager_check_with: Example.Accounts
     )
+  end
+
+  relationships do
+    has_many :web_authn_keys, Example.Accounts.WebAuthnKey do
+      destination_attribute :user_id
+    end
   end
 
   def get_config(path, resource) do
