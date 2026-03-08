@@ -25,7 +25,7 @@ defmodule Example.Accounts.User do
     end
 
     def secret_for(@origin_path, _resource, _opts, _context) do
-      {:ok, "http://localhost:4000"}
+      {:ok, DevWeb.Endpoint.url()}
     end
 
     def secret_for(@relying_party_path, _resource, _opts, %{http_request: %{host: host}}) do
@@ -39,7 +39,19 @@ defmodule Example.Accounts.User do
     end
 
     def secret_for(@relying_party_path, _resource, _opts, _context) do
-      {:ok, "localhost"}
+      {:ok, get_env([DevWeb.Endpoint, :url, :host], "localhost")}
+    end
+
+    defp get_env([key | path], default) do
+      get_env(key, nil)
+      |> case do
+        nil -> default
+        value -> get_in(value, path) || default
+      end
+    end
+
+    defp get_env(key, default) do
+      Application.get_env(:ash_authentication_phoenix, key) || default
     end
   end
 

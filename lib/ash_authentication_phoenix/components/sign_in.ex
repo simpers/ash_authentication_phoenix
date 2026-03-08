@@ -55,6 +55,7 @@ defmodule AshAuthentication.Phoenix.Components.SignIn do
 
   @type props :: %{
           optional(:path) => String.t(),
+          optional(:webauthn_path) => String.t(),
           optional(:reset_path) => String.t(),
           optional(:register_path) => String.t(),
           optional(:current_tenant) => String.t(),
@@ -102,6 +103,7 @@ defmodule AshAuthentication.Phoenix.Components.SignIn do
       |> assign_new(:gettext_fn, fn -> nil end)
       |> assign_new(:live_action, fn -> :sign_in end)
       |> assign_new(:path, fn -> "/" end)
+      |> assign_new(:webauthn_path, fn -> nil end)
       |> assign_new(:reset_path, fn -> nil end)
       |> assign_new(:register_path, fn -> nil end)
       |> assign_new(:current_tenant, fn -> nil end)
@@ -133,6 +135,7 @@ defmodule AshAuthentication.Phoenix.Components.SignIn do
           live_action={@live_action}
           strategies={top_strategies}
           path={@path}
+          webauthn_path={@webauthn_path}
           auth_routes_prefix={@auth_routes_prefix}
           reset_path={@reset_path}
           register_path={@register_path}
@@ -155,6 +158,7 @@ defmodule AshAuthentication.Phoenix.Components.SignIn do
           strategies={bottom_strategies}
           auth_routes_prefix={@auth_routes_prefix}
           path={@path}
+          webauthn_path={@webauthn_path}
           reset_path={@reset_path}
           register_path={@register_path}
           overrides={@overrides}
@@ -180,6 +184,7 @@ defmodule AshAuthentication.Phoenix.Components.SignIn do
           strategy={strategy}
           auth_routes_prefix={@auth_routes_prefix}
           path={@path}
+          webauthn_path={@webauthn_path}
           reset_path={@reset_path}
           register_path={@register_path}
           live_action={@live_action}

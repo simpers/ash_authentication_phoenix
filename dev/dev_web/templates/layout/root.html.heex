@@ -20,6 +20,256 @@
       let liveSocket = new LiveSocket("/live", Socket, { params: { _csrf_token: csrfToken } })
       liveSocket.connect()
       window.liveSocket = liveSocket
+
+      function toBase64Url(uint8) {
+        const base64 = btoa(String.fromCharCode(...uint8));
+        return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+      }
+
+      function fromBase64Url(base64url) {
+        if (!base64url) return new Uint8Array();
+        const padded = base64url.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((base64url.length + 3) % 4);
+        const raw = atob(padded);
+        return Uint8Array.from(raw, c => c.charCodeAt(0));
+      }
+
+      function decodePublicKeyOptions(publicKey) {
+        const decoded = structuredClone(publicKey);
+
+        if (decoded.challenge) {
+          decoded.challenge = fromBase64Url(decoded.challenge);
+        }
+
+        if (decoded.user?.id) {
+          decoded.user.id = fromBase64Url(decoded.user.id);
+        }
+
+        if (Array.isArray(decoded.excludeCredentials)) {
+          decoded.excludeCredentials = decoded.excludeCredentials.map(item => ({
+            ...item,
+            id: fromBase64Url(item.id)
+          }));
+        }
+
+        if (Array.isArray(decoded.allowCredentials)) {
+          decoded.allowCredentials = decoded.allowCredentials.map(item => ({
+            ...item,
+            id: fromBase64Url(item.id)
+          }));
+        }
+
+        return decoded;
+      }
+
+      function serializeCredential(credential) {
+        const rawId = toBase64Url(new Uint8Array(credential.rawId));
+        const base = {
+          id: credential.id,
+          type: credential.type,
+          raw_id: rawId,
+          rawId: rawId
+        };
+
+        if (credential.response.attestationObject) {
+          return {
+            ...base,
+            response: {
+              client_data_json: toBase64Url(new Uint8Array(credential.response.clientDataJSON)),
+              clientDataJSON: toBase64Url(new Uint8Array(credential.response.clientDataJSON)),
+              attestation_object: toBase64Url(new Uint8Array(credential.response.attestationObject)),
+              attestationObject: toBase64Url(new Uint8Array(credential.response.attestationObject))
+            }
+          };
+        }
+
+        return {
+          ...base,
+          response: {
+            client_data_json: toBase64Url(new Uint8Array(credential.response.clientDataJSON)),
+            clientDataJSON: toBase64Url(new Uint8Array(credential.response.clientDataJSON)),
+            authenticator_data: toBase64Url(new Uint8Array(credential.response.authenticatorData)),
+            authenticatorData: toBase64Url(new Uint8Array(credential.response.authenticatorData)),
+            signature: toBase64Url(new Uint8Array(credential.response.signature)),
+            user_handle: credential.response.userHandle
+              ? toBase64Url(new Uint8Array(credential.response.userHandle))
+              : null,
+            userHandle: credential.response.userHandle
+              ? toBase64Url(new Uint8Array(credential.response.userHandle))
+              : null
+          }
+        };
+      }
+
+      async function postJson(path, payload) {
+        const response = await fetch(path, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'content-type': 'application/json',
+            'x-csrf-token': csrfToken
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const body = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          const message = body?.reason || body?.error || `Request failed (${response.status})`;
+          throw new Error(message);
+        }
+
+        return body;
+      }
+
+      function setStatus(section, message, isError = false) {
+        const output = section.querySelector('[data-webauthn-status]');
+        if (!output) return;
+        output.textContent = message;
+        output.style.color = isError ? '#b91c1c' : '';
+      }
+
+      function subjectPayload(section, extras = {}) {
+        const subjectName = section.dataset.webauthnSubjectName;
+        const identity = section.querySelector('[data-webauthn-identity]')?.value?.trim();
+        const keyName = section.querySelector('[data-webauthn-key-name]')?.value?.trim();
+        const subject = { ...extras };
+
+        if (identity) {
+          subject.identity = identity;
+          subject.display_name = identity;
+          subject.displayName = identity;
+        }
+
+        if (keyName) {
+          subject.key_name = keyName;
+          subject.credential_name = keyName;
+        }
+
+        return { [subjectName]: subject };
+      }
+
+      async function runRegister(section) {
+        const registerBeginPath = section.dataset.webauthnRegisterBeginPath;
+        const registerFinishPath = section.dataset.webauthnRegisterFinishPath;
+
+        setStatus(section, 'Starting passkey registration...');
+        const begin = await postJson(registerBeginPath, subjectPayload(section));
+        const webauthn = begin.webauthn || begin;
+
+        const credential = await navigator.credentials.create({
+          publicKey: decodePublicKeyOptions(webauthn.public_key)
+        });
+
+        await postJson(
+          registerFinishPath,
+          subjectPayload(section, {
+            state_token: webauthn.state_token,
+            credential: serializeCredential(credential)
+          })
+        );
+
+        setStatus(section, 'Passkey created. You are now signed in.');
+        window.location.href = '/';
+      }
+
+      async function runSignIn(section) {
+        const signInBeginPath = section.dataset.webauthnSignInBeginPath;
+        const signInFinishPath = section.dataset.webauthnSignInFinishPath;
+
+        setStatus(section, 'Starting passkey sign in...');
+        const begin = await postJson(signInBeginPath, subjectPayload(section));
+        const webauthn = begin.webauthn || begin;
+
+        const credential = await navigator.credentials.get({
+          publicKey: decodePublicKeyOptions(webauthn.public_key)
+        });
+
+        const finish = await postJson(signInFinishPath, subjectPayload(section, {
+          state_token: webauthn.state_token,
+          credential: serializeCredential(credential)
+        }));
+
+        setStatus(section, 'Signed in with passkey. Redirecting...');
+        window.location.href = finish.redirect_to || '/';
+      }
+
+      function setupWebAuthn(section) {
+        if (section.dataset.webauthnMounted === 'true') {
+          return;
+        }
+
+        section.dataset.webauthnMounted = 'true';
+
+        const registerButton = section.querySelector('[data-webauthn-action="register"]');
+        const signInButton = section.querySelector('[data-webauthn-action="sign-in"]');
+
+        const setButtonsDisabled = (value) => {
+          if (registerButton) registerButton.disabled = value;
+          if (signInButton) signInButton.disabled = value;
+        };
+
+        if (!window.PublicKeyCredential) {
+          setStatus(section, 'This browser does not support WebAuthn.', true);
+          registerButton?.setAttribute('disabled', 'disabled');
+          signInButton?.setAttribute('disabled', 'disabled');
+          return;
+        }
+
+        registerButton?.addEventListener('click', async () => {
+          if (section.dataset.webauthnPending === 'true') {
+            return;
+          }
+
+          section.dataset.webauthnPending = 'true';
+          setButtonsDisabled(true);
+
+          try {
+            await runRegister(section);
+          } catch (error) {
+            if (error?.name === 'NotAllowedError') {
+              setStatus(section, 'Passkey registration was cancelled.');
+            } else if (error?.name === 'InvalidStateError') {
+              setStatus(section, 'A passkey request is already in progress. Please wait and try again.', true);
+            } else {
+              setStatus(section, error.message || 'Passkey registration failed.', true);
+            }
+          } finally {
+            section.dataset.webauthnPending = 'false';
+            setButtonsDisabled(false);
+          }
+        });
+
+        signInButton?.addEventListener('click', async () => {
+          if (section.dataset.webauthnPending === 'true') {
+            return;
+          }
+
+          section.dataset.webauthnPending = 'true';
+          setButtonsDisabled(true);
+
+          try {
+            await runSignIn(section);
+          } catch (error) {
+            if (error?.name === 'NotAllowedError') {
+              setStatus(section, 'Passkey sign in was cancelled.');
+            } else if (error?.name === 'InvalidStateError') {
+              setStatus(section, 'A passkey request is already in progress. Please wait and try again.', true);
+            } else {
+              setStatus(section, error.message || 'Passkey sign in failed.', true);
+            }
+          } finally {
+            section.dataset.webauthnPending = 'false';
+            setButtonsDisabled(false);
+          }
+        });
+      }
+
+      function mountWebAuthn() {
+        document.querySelectorAll('[data-webauthn="true"]').forEach(setupWebAuthn);
+      }
+
+      document.addEventListener('DOMContentLoaded', mountWebAuthn);
+      window.addEventListener('phx:page-loading-stop', mountWebAuthn);
     </script>
   </head>
   <body>
