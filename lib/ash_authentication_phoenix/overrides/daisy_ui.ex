@@ -256,11 +256,13 @@ defmodule AshAuthentication.Phoenix.Overrides.DaisyUI do
     set :actions_class, "flex flex-col gap-2"
     set :register_button_class, "btn btn-primary btn-block"
     set :sign_in_button_class, "btn btn-outline btn-block"
+    set :workflow_button_class, "btn btn-outline btn-block"
     set :status_class, "text-warning text-sm mt-2"
     set :heading_text, "Passkeys"
     set :description_text, "Use your device passkey to register or sign in without a password."
-    set :register_button_text, "Create passkey"
-    set :sign_in_button_text, "Use passkey"
+    set :register_button_text, "Create/register passkey"
+    set :sign_in_button_text, "Sign in with passkey"
+    set :workflow_button_text, "Continue with WebAuthn"
 
     set :unavailable_text,
         "WebAuthn routes are not fully available for this strategy configuration yet."

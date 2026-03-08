@@ -46,7 +46,15 @@ defmodule DevWeb.Router do
     sign_in_route(
       path: "/sign-in",
       overrides: [DevWeb.AuthOverrides, AshAuthentication.Phoenix.Overrides.DaisyUI],
-      auth_routes_prefix: "/auth"
+      auth_routes_prefix: "/auth",
+      webauthn_path: "/webauthn"
+    )
+
+    web_authn_route(Example.Accounts.User, :web_authn,
+      path: "/webauthn",
+      auth_routes_prefix: "/auth",
+      sign_in_path: "/sign-in",
+      overrides: [DevWeb.AuthOverrides, AshAuthentication.Phoenix.Overrides.DaisyUI]
     )
 
     totp_2fa_route(Example.Accounts.User, :totp,
