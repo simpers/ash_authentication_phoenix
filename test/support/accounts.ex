@@ -8,6 +8,8 @@ defmodule Example.Accounts do
 
   resources do
     resource Example.Accounts.Admin
+    resource Example.Accounts.PasskeyUser
+    resource Example.Accounts.PasskeyWebAuthnKey
     resource Example.Accounts.Token
     resource Example.Accounts.User
     resource Example.Accounts.WebAuthnKey

@@ -270,12 +270,6 @@ defmodule Example.Accounts.User do
         confirm_setup_enabled? true
         brute_force_strategy {:preparation, Example.TotpNoopPreparation}
       end
-
-      web_authn do
-        key_resource Example.Accounts.WebAuthnKey
-        relying_party WebAuthnSecret
-        require_identity? true
-      end
     end
 
     tokens do
