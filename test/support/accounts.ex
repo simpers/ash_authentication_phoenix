@@ -11,6 +11,8 @@ defmodule Example.Accounts do
     resource Example.Accounts.OidcConnection
     resource Example.Accounts.Token
     resource Example.Accounts.User
-    resource Example.Accounts.WebAuthnKey
+    resource Example.Accounts.WebAuthnSimpersNoIdentityKey
+    resource Example.Accounts.WebAuthnSimpersNoIdentityUser
+    resource Example.Accounts.WebAuthnSimpersWithIdentityKey
   end
 end

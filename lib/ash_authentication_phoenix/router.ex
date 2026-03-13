@@ -1664,7 +1664,7 @@ defmodule AshAuthentication.Phoenix.Router do
         ) :: Macro.t()
   defmacro web_authn_route(resource, strategy, opts \\ []) do
     {path, opts} = Keyword.pop(opts, :path, "/#{strategy}")
-    {live_view, opts} = Keyword.pop(opts, :live_view, AshAuthentication.Phoenix.WebAuthnLive)
+    {live_view, opts} = Keyword.pop(opts, :live_view, AshAuthentication.Phoenix.WebAuthnSimpersLive)
     {as, opts} = Keyword.pop(opts, :as, :auth)
     {otp_app, opts} = Keyword.pop(opts, :otp_app)
     {layout, opts} = Keyword.pop(opts, :layout)

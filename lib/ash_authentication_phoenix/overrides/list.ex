@@ -55,6 +55,11 @@ defmodule AshAuthenticationPhoenix.Overrides.List do
     WebAuthn: [
       AshAuthentication.Phoenix.Components.WebAuthn
     ],
+    WebAuthnSimpers: [
+      AshAuthentication.Phoenix.Components.WebAuthnSimpers,
+      AshAuthentication.Phoenix.Components.WebAuthnSimpers.RegisterForm,
+      AshAuthentication.Phoenix.Components.WebAuthnSimpers.SignInForm
+    ],
     TOTP: [
       AshAuthentication.Phoenix.Components.Totp,
       AshAuthentication.Phoenix.Components.Totp.SignInForm,
