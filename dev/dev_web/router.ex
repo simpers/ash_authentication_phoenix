@@ -45,12 +45,13 @@ defmodule DevWeb.Router do
 
     sign_in_route(
       path: "/sign-in",
+      resources: [Example.Accounts.User, Example.Accounts.PasskeyUser],
       overrides: [DevWeb.AuthOverrides, AshAuthentication.Phoenix.Overrides.DaisyUI],
       auth_routes_prefix: "/auth",
       webauthn_path: "/webauthn"
     )
 
-    web_authn_route(Example.Accounts.User, :web_authn,
+    web_authn_route(Example.Accounts.PasskeyUser, :web_authn,
       path: "/webauthn",
       auth_routes_prefix: "/auth",
       sign_in_path: "/sign-in",
@@ -68,5 +69,6 @@ defmodule DevWeb.Router do
     )
 
     auth_routes(AuthController, Example.Accounts.User)
+    auth_routes(AuthController, Example.Accounts.PasskeyUser)
   end
 end

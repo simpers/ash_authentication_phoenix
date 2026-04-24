@@ -26,6 +26,8 @@ defmodule Dev.Application do
   defp initialize_ets_resources do
     for resource <- [
           Example.Accounts.Admin,
+          Example.Accounts.PasskeyUser,
+          Example.Accounts.PasskeyWebAuthnKey,
           Example.Accounts.Token,
           Example.Accounts.User,
           Example.Accounts.WebAuthnKey
