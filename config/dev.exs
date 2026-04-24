@@ -16,12 +16,16 @@ config :git_ops,
   ],
   version_tag_prefix: "v"
 
+port =
+  System.get_env("PORT", "4000")
+  |> String.to_integer()
+
 config :ash_authentication_phoenix, DevWeb.Endpoint,
   url: [host: "localhost"],
   render_errors: [view: DevWeb.ErrorView, accepts: ~w(html json), layout: false],
   pubsub_server: Dev.PubSub,
   live_view: [signing_salt: "mwTS8kFY"],
-  http: [ip: {127, 0, 0, 1}, port: 4000],
+  http: [ip: {127, 0, 0, 1}, port: port],
   check_origin: false,
   debug_errors: true,
   secret_key_base: "5PmCh9zQTJuCjlXm2EeF+hoYLkFxgH/3bzLE8D0Tzg5XLw6ZIMGipHFbr0z19dlC",
@@ -40,13 +44,13 @@ config :ash_authentication_phoenix, Example.Accounts.User,
       auth0: [
         client_id: System.get_env("OAUTH2_CLIENT_ID"),
         client_secret: System.get_env("OAUTH2_CLIENT_SECRET"),
-        redirect_uri: "http://localhost:4000/auth",
+        redirect_uri: "http://localhost:#{port}/auth",
         site: System.get_env("OAUTH2_SITE")
       ],
       github: [
         client_id: System.get_env("GITHUB_CLIENT_ID"),
         client_secret: System.get_env("GITHUB_CLIENT_SECRET"),
-        redirect_uri: "http://localhost:4000/auth"
+        redirect_uri: "http://localhost:#{port}/auth"
       ]
     ]
   ]
