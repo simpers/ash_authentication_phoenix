@@ -26,12 +26,16 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 ash_authentication_phoenix-*.tar
 
-
 # Temporary files for e.g. tests
 /tmp
 
 .vscode
 .DS_Store
-.envrc
+/**/.env
+/**/.envrc
 /priv/plts
 .claude
+
+/.elixir-tools
+/.elixir_ls
+/.expert
