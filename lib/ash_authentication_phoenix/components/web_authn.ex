@@ -57,14 +57,28 @@ defmodule AshAuthentication.Phoenix.Components.WebAuthn do
   def render(assigns) do
     subject_name = Info.authentication_subject_name!(assigns.strategy.resource)
 
+    auth_routes_prefix = Map.get(assigns, :auth_routes_prefix)
+
     assigns =
       assigns
       |> assign(:subject_name, subject_name)
       |> assign(:strategy_name, Strategy.name(assigns.strategy))
-      |> assign(:register_begin_path, phase_path(assigns, :register_begin))
-      |> assign(:register_finish_path, phase_path(assigns, :register_finish))
-      |> assign(:sign_in_begin_path, phase_path(assigns, :sign_in_begin))
-      |> assign(:sign_in_finish_path, phase_path(assigns, :sign_in_finish))
+      |> assign(
+        :register_begin_path,
+        phase_path(assigns, subject_name, auth_routes_prefix, :register_begin)
+      )
+      |> assign(
+        :register_finish_path,
+        phase_path(assigns, subject_name, auth_routes_prefix, :register_finish)
+      )
+      |> assign(
+        :sign_in_begin_path,
+        phase_path(assigns, subject_name, auth_routes_prefix, :sign_in_begin)
+      )
+      |> assign(
+        :sign_in_finish_path,
+        phase_path(assigns, subject_name, auth_routes_prefix, :sign_in_finish)
+      )
       |> assign_new(:overrides, fn -> [AshAuthentication.Phoenix.Overrides.Default] end)
       |> assign_new(:gettext_fn, fn -> nil end)
       |> assign_new(:auth_routes_prefix, fn -> nil end)
@@ -138,12 +152,12 @@ defmodule AshAuthentication.Phoenix.Components.WebAuthn do
     """
   end
 
-  defp phase_path(assigns, phase) do
+  defp phase_path(assigns, subject_name, auth_routes_prefix, phase) do
     if has_phase?(assigns.strategy, phase) do
       auth_path(
         assigns.socket,
-        assigns.subject_name,
-        assigns.auth_routes_prefix,
+        subject_name,
+        auth_routes_prefix,
         assigns.strategy,
         phase,
         %{}
