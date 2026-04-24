@@ -19,6 +19,7 @@ defmodule AshAuthentication.Phoenix.MixProject do
       aliases: aliases(),
       deps: deps(),
       package: package(),
+      listeners: [Phoenix.CodeReloader],
       elixirc_paths: elixirc_paths(Mix.env()),
       dialyzer: [
         plt_add_apps: [:mix, :ex_unit, :ash_authentication],
@@ -159,7 +160,8 @@ defmodule AshAuthentication.Phoenix.MixProject do
       {:mix_audit, "~> 2.1", only: [:dev, :test]},
       {:plug_cowboy, "~> 2.5", only: [:dev, :test]},
       {:sobelow, "~> 0.13", only: [:dev, :test]},
-      {:floki, ">= 0.30.0", only: :test}
+      {:floki, ">= 0.30.0", only: :test},
+      {:tidewave, "~> 0.5", only: [:dev]}
     ]
   end
 
