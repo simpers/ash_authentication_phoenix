@@ -313,6 +313,7 @@ defmodule AshAuthentication.Phoenix.Router do
     {reset_path, opts} = Keyword.pop(opts, :reset_path)
     {register_path, opts} = Keyword.pop(opts, :register_path)
     {auth_routes_prefix, opts} = Keyword.pop(opts, :auth_routes_prefix)
+    {webauthn_path, opts} = Keyword.pop(opts, :webauthn_path)
     {gettext_fn, opts} = Keyword.pop(opts, :gettext_fn)
     {gettext_backend, opts} = Keyword.pop(opts, :gettext_backend)
     {on_mount_prepend, opts} = Keyword.pop(opts, :on_mount_prepend)
@@ -379,21 +380,34 @@ defmodule AshAuthentication.Phoenix.Router do
             value -> Phoenix.Router.scoped_path(__MODULE__, value)
           end
 
+        webauthn_path =
+          case unquote(webauthn_path) do
+            nil -> nil
+            {:unscoped, value} -> value
+            value -> Phoenix.Router.scoped_path(__MODULE__, value)
+          end
+
+        session =
+          %{
+            "overrides" => unquote(overrides),
+            "auth_routes_prefix" => auth_routes_prefix,
+            "otp_app" => unquote(otp_app),
+            "resources" => unquote(resources),
+            "path" => sign_in_path,
+            "reset_path" => reset_path,
+            "register_path" => register_path,
+            "gettext_fn" => unquote(gettext_fn)
+          }
+
+        session =
+          if webauthn_path do
+            Map.put(session, "webauthn_path", webauthn_path)
+          else
+            session
+          end
+
         live_session_opts = [
-          session:
-            {AshAuthentication.Phoenix.Router, :generate_session,
-             [
-               %{
-                 "overrides" => unquote(overrides),
-                 "auth_routes_prefix" => auth_routes_prefix,
-                 "otp_app" => unquote(otp_app),
-                 "resources" => unquote(resources),
-                 "path" => sign_in_path,
-                 "reset_path" => reset_path,
-                 "register_path" => register_path,
-                 "gettext_fn" => unquote(gettext_fn)
-               }
-             ]},
+          session: {AshAuthentication.Phoenix.Router, :generate_session, [session]},
           on_mount: on_mount
         ]
 
@@ -1385,6 +1399,114 @@ defmodule AshAuthentication.Phoenix.Router do
           else
             live("/", unquote(live_view), :sign_in, as: unquote(as))
           end
+        end
+      end
+
+      unquote(generate_gettext_fn(gettext_backend, path))
+    end
+  end
+
+  @doc """
+  Generates a dedicated WebAuthn workflow page using LiveView.
+
+  This is useful when you want to keep the main sign-in page simple and move
+  WebAuthn-specific inputs (for example credential labels) into a dedicated flow.
+  """
+  @spec web_authn_route(
+          resource :: Ash.Resource.t(),
+          strategy :: atom(),
+          opts :: [
+            {:path, String.t()}
+            | {:live_view, module}
+            | {:as, atom}
+            | {:overrides, [module]}
+            | {:gettext_fn, {module, atom}}
+            | {:gettext_backend, {module, String.t()}}
+            | {:on_mount, [module]}
+            | {:on_mount_prepend, [module]}
+            | {atom, any}
+          ]
+        ) :: Macro.t()
+  defmacro web_authn_route(resource, strategy, opts \\ []) do
+    {path, opts} = Keyword.pop(opts, :path, "/#{strategy}")
+    {live_view, opts} = Keyword.pop(opts, :live_view, AshAuthentication.Phoenix.WebAuthnLive)
+    {as, opts} = Keyword.pop(opts, :as, :auth)
+    {otp_app, opts} = Keyword.pop(opts, :otp_app)
+    {layout, opts} = Keyword.pop(opts, :layout)
+    {on_mount, opts} = Keyword.pop(opts, :on_mount)
+    {on_mount_prepend, opts} = Keyword.pop(opts, :on_mount_prepend)
+    {auth_routes_prefix, opts} = Keyword.pop(opts, :auth_routes_prefix)
+    {sign_in_path, opts} = Keyword.pop(opts, :sign_in_path, "/sign-in")
+    {gettext_fn, opts} = Keyword.pop(opts, :gettext_fn)
+    {gettext_backend, opts} = Keyword.pop(opts, :gettext_backend)
+
+    {overrides, opts} =
+      Keyword.pop(opts, :overrides, [AshAuthentication.Phoenix.Overrides.Default])
+
+    gettext_fn =
+      maybe_generate_gettext_fn_pointer(gettext_fn, gettext_backend, __CALLER__.module, path)
+
+    opts =
+      opts
+      |> Keyword.put_new(:alias, false)
+
+    quote do
+      auth_routes_prefix =
+        case unquote(auth_routes_prefix) do
+          nil -> nil
+          {:unscoped, value} -> value
+          value -> Phoenix.Router.scoped_path(__MODULE__, value)
+        end
+
+      sign_in_path =
+        case unquote(sign_in_path) do
+          nil -> nil
+          {:unscoped, value} -> value
+          value -> Phoenix.Router.scoped_path(__MODULE__, value)
+        end
+
+      scope unquote(path), unquote(opts) do
+        import Phoenix.LiveView.Router, only: [live: 4, live_session: 3]
+
+        on_mount =
+          (List.wrap(unquote(on_mount_prepend)) ++
+             [
+               AshAuthentication.Phoenix.Router.OnLiveViewMount,
+               AshAuthentication.Phoenix.LiveSession | unquote(on_mount || [])
+             ])
+          |> Enum.uniq_by(fn
+            {mod, _} -> mod
+            mod -> mod
+          end)
+
+        live_session_opts = [
+          session:
+            {AshAuthentication.Phoenix.Router, :generate_session,
+             [
+               %{
+                 "auth_routes_prefix" => auth_routes_prefix,
+                 "overrides" => unquote(overrides),
+                 "gettext_fn" => unquote(gettext_fn),
+                 "resource" => unquote(resource),
+                 "strategy" => unquote(strategy),
+                 "path" => sign_in_path,
+                 "otp_app" => unquote(otp_app)
+               }
+             ]},
+          on_mount: on_mount
+        ]
+
+        live_session_opts =
+          case unquote(layout) do
+            nil ->
+              live_session_opts
+
+            layout ->
+              Keyword.put(live_session_opts, :layout, layout)
+          end
+
+        live_session :"#{unquote(as)}_web_authn", live_session_opts do
+          live("/", unquote(live_view), :webauthn, as: unquote(as))
         end
       end
 

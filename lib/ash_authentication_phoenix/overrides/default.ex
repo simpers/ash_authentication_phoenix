@@ -316,10 +316,19 @@ defmodule AshAuthentication.Phoenix.Overrides.Default do
     """
 
     set :status_class, "text-sm text-amber-600 dark:text-amber-400 mt-2"
+
+    set :workflow_button_class, """
+    w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md
+    shadow-sm text-sm font-medium text-gray-900 bg-white hover:bg-gray-100
+    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+    dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700
+    """
+
     set :heading_text, "Passkeys"
     set :description_text, "Use your device passkey to register or sign in without a password."
-    set :register_button_text, "Create passkey"
-    set :sign_in_button_text, "Use passkey"
+    set :register_button_text, "Create/register passkey"
+    set :sign_in_button_text, "Sign in with passkey"
+    set :workflow_button_text, "Continue with WebAuthn"
 
     set :unavailable_text,
         "WebAuthn routes are not fully available for this strategy configuration yet."
