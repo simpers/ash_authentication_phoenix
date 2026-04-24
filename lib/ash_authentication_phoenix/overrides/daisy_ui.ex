@@ -249,6 +249,23 @@ defmodule AshAuthentication.Phoenix.Overrides.DaisyUI do
     set :icon_class, ""
   end
 
+  override Components.WebAuthn do
+    set :root_class, "w-full mt-2 mb-4"
+    set :heading_class, "mt-2 mb-2 text-2xl tracking-tight font-bold text-base-content"
+    set :description_class, "text-sm text-base-content/70 mb-4"
+    set :actions_class, "flex flex-col gap-2"
+    set :register_button_class, "btn btn-primary btn-block"
+    set :sign_in_button_class, "btn btn-outline btn-block"
+    set :status_class, "text-warning text-sm mt-2"
+    set :heading_text, "Passkeys"
+    set :description_text, "Use your device passkey to register or sign in without a password."
+    set :register_button_text, "Create passkey"
+    set :sign_in_button_text, "Use passkey"
+
+    set :unavailable_text,
+        "WebAuthn routes are not fully available for this strategy configuration yet."
+  end
+
   override Components.Totp do
     set :root_class, "mt-4 mb-4"
     set :hide_class, "hidden"
