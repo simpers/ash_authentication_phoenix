@@ -52,6 +52,9 @@ defmodule AshAuthenticationPhoenix.Overrides.List do
       AshAuthentication.Phoenix.Components.DynamicOidc,
       AshAuthentication.Phoenix.Components.OAuth2
     ],
+    WebAuthn: [
+      AshAuthentication.Phoenix.Components.WebAuthn
+    ],
     TOTP: [
       AshAuthentication.Phoenix.Components.Totp,
       AshAuthentication.Phoenix.Components.Totp.SignInForm,
