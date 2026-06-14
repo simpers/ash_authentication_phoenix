@@ -29,6 +29,14 @@
         "MORPH_API_KEY": "{env:MORPH_API_KEY}",
         "ENABLED_TOOLS": "edit_file,warpgrep_codebase_search"
       }
+    },
+    "tidewave": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "mcp-proxy-wrapper",
+        "TIDEWAVE_MCP_ENDPOINT"
+      ]
     }
   }
 }

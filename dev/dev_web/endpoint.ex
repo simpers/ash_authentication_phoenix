@@ -38,6 +38,10 @@ defmodule DevWeb.Endpoint do
 
   plug Plug.RequestId
 
+  if Code.ensure_loaded?(Tidewave) do
+    plug Tidewave
+  end
+
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],
