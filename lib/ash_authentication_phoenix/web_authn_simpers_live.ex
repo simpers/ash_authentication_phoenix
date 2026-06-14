@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-defmodule AshAuthentication.Phoenix.WebAuthnLive do
+defmodule AshAuthentication.Phoenix.WebAuthnSimpersLive do
   @moduledoc """
   Dedicated WebAuthn workflow page.
 
@@ -41,7 +41,7 @@ defmodule AshAuthentication.Phoenix.WebAuthnLive do
     ~H"""
     <div class="auth-main max-w-md mx-auto px-2">
       <.live_component
-        module={Components.WebAuthn}
+        module={Components.WebAuthnSimpers}
         id={"webauthn-workflow-#{AshAuthentication.Strategy.name(@strategy)}"}
         strategy={@strategy}
         path={@path}

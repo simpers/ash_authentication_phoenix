@@ -28,7 +28,9 @@ defmodule Dev.Application do
           Example.Accounts.Admin,
           Example.Accounts.Token,
           Example.Accounts.User,
-          Example.Accounts.WebAuthnKey
+          Example.Accounts.WebAuthnSimpersNoIdentityKey,
+          Example.Accounts.WebAuthnSimpersNoIdentityUser,
+          Example.Accounts.WebAuthnSimpersWithIdentityKey
         ] do
       resource
       |> Ash.Query.for_read(:read)

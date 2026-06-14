@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-defmodule AshAuthentication.Phoenix.Components.WebAuthn do
+defmodule AshAuthentication.Phoenix.Components.WebAuthnSimpers do
   use AshAuthentication.Phoenix.Overrides.Overridable,
     root_class: "CSS class for the root `div` element.",
     heading_class: "CSS class for the heading element.",
@@ -43,7 +43,7 @@ defmodule AshAuthentication.Phoenix.Components.WebAuthn do
 
   use AshAuthentication.Phoenix.Web, :live_component
   alias AshAuthentication.{Info, Strategy}
-  alias AshAuthentication.Phoenix.Components.WebAuthn.{RegisterForm, SignInForm}
+  alias AshAuthentication.Phoenix.Components.WebAuthnSimpers.{RegisterForm, SignInForm}
   alias Phoenix.LiveView.Rendered
   import AshAuthentication.Phoenix.Components.Helpers, only: [auth_path: 6]
 
@@ -212,7 +212,7 @@ defmodule AshAuthentication.Phoenix.Components.WebAuthn do
   end
 end
 
-defmodule AshAuthentication.Phoenix.Components.WebAuthn.RegisterForm do
+defmodule AshAuthentication.Phoenix.Components.WebAuthnSimpers.RegisterForm do
   use AshAuthentication.Phoenix.Web, :live_component
 
   @impl true
@@ -270,7 +270,7 @@ defmodule AshAuthentication.Phoenix.Components.WebAuthn.RegisterForm do
   end
 end
 
-defmodule AshAuthentication.Phoenix.Components.WebAuthn.SignInForm do
+defmodule AshAuthentication.Phoenix.Components.WebAuthnSimpers.SignInForm do
   use AshAuthentication.Phoenix.Web, :live_component
 
   @impl true

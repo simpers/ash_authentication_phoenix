@@ -292,12 +292,6 @@ defmodule Example.Accounts.User do
         confirm_setup_enabled? true
         brute_force_strategy {:preparation, Example.TotpNoopPreparation}
       end
-
-      web_authn do
-        key_resource Example.Accounts.WebAuthnKey
-        relying_party WebAuthnSecret
-        require_identity? true
-      end
     end
 
     tokens do
@@ -318,7 +312,7 @@ defmodule Example.Accounts.User do
   end
 
   relationships do
-    has_many :web_authn_keys, Example.Accounts.WebAuthnKey do
+    has_many :webauthn_simpers_credentials, Example.Accounts.WebAuthnSimpersWithIdentityKey do
       destination_attribute :user_id
     end
   end
